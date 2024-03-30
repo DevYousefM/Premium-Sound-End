@@ -311,37 +311,36 @@ class  adminback
         $pdt_status = $data['u_pdt_status'];
 
         // Image handling
-        $pdt_img_name = $_FILES['u_pdt_img']['name'];
-        $pdt_img_size = $_FILES['u_pdt_img']['size'];
-        $pdt_img_tmp = $_FILES['u_pdt_img']['tmp_name'];
+        $pdt_img_name = isset($_FILES['u_pdt_img']['name']) ? $_FILES['u_pdt_img']['name'] : '';
+        $pdt_img_size = isset($_FILES['u_pdt_img']['size']) ? $_FILES['u_pdt_img']['size'] : 0;
+        $pdt_img_tmp = isset($_FILES['u_pdt_img']['tmp_name']) ? $_FILES['u_pdt_img']['tmp_name'] : '';
         $img_ext = pathinfo($pdt_img_name, PATHINFO_EXTENSION);
 
-        list($width, $height) = getimagesize("$pdt_img_tmp");
-
         // Sound handling
-        $pdt_sound_name = $_FILES['u_pdt_sound']['name'];
-        $pdt_sound_size = $_FILES['u_pdt_sound']['size'];
-        $pdt_sound_tmp = $_FILES['u_pdt_sound']['tmp_name'];
+        $pdt_sound_name = isset($_FILES['u_pdt_sound']['name']) ? $_FILES['u_pdt_sound']['name'] : '';
+        $pdt_sound_size = isset($_FILES['u_pdt_sound']['size']) ? $_FILES['u_pdt_sound']['size'] : 0;
+        $pdt_sound_tmp = isset($_FILES['u_pdt_sound']['tmp_name']) ? $_FILES['u_pdt_sound']['tmp_name'] : '';
         $sound_ext = pathinfo($pdt_sound_name, PATHINFO_EXTENSION);
 
-        if (($img_ext == "jpg" || $img_ext == 'jpeg' || $img_ext == "png") &&
-            ($sound_ext == "mp3" || $sound_ext == 'm4a')
+        if (($img_ext == "jpg" || $img_ext == 'jpeg' || $img_ext == "png" || $pdt_img_size == 0) &&
+            ($sound_ext == "mp3" || $sound_ext == 'm4a' || $pdt_sound_size == 0)
         ) {
-
             $select_query = "SELECT * FROM `products` WHERE pdt_id=$pdt_id";
             $result = mysqli_query($this->connection, $select_query);
             $row = mysqli_fetch_assoc($result);
             $pre_img = $row['pdt_img'];
-            unlink("uploads/" . $pre_img);
-
             $pre_sound = $row['pdt_sound'];
-            unlink("uploads/" . $pre_sound);
 
-            $query = "UPDATE `products` SET `pdt_name`='$pdt_name',`pdt_price`='$pdt_price',`pdt_des`='$pdt_des',`pdt_ctg`='$pdt_ctg',`pdt_img`='$pdt_img_name',`pdt_sound`='$pdt_sound_name',`pdt_status`=$pdt_status WHERE pdt_id=$pdt_id";
+            $pdt_img_name = ($pdt_img_size > 0) ? $pdt_img_name : $pre_img;
+            $pdt_sound_name = ($pdt_sound_size > 0) ? $pdt_sound_name : $pre_sound;
+
+            $query = "UPDATE `products` SET `pdt_name`='$pdt_name',`pdt_price`='$pdt_price',`pdt_des`='$pdt_des',`pdt_ctg`=$pdt_ctg,`pdt_img`='$pdt_img_name',`pdt_sound`='$pdt_sound_name',`pdt_status`=$pdt_status WHERE pdt_id=$pdt_id";
 
             if (mysqli_query($this->connection, $query)) {
-                move_uploaded_file($pdt_img_tmp, "uploads/" . $pdt_img_name);
-                move_uploaded_file($pdt_sound_tmp, "uploads/" . $pdt_sound_name);
+                if ($pdt_img_size > 0)
+                    move_uploaded_file($pdt_img_tmp, "uploads/" . $pdt_img_name);
+                if ($pdt_sound_size > 0)
+                    move_uploaded_file($pdt_sound_tmp, "uploads/" . $pdt_sound_name);
                 $msg = "Product Updated successfully";
                 return $msg;
             }
@@ -350,6 +349,7 @@ class  adminback
             return $msg;
         }
     }
+
     function update_coupon($data)
     {
         $coupon_id = $data['coupon_id'];

@@ -47,8 +47,7 @@ if (isset($update_msg)) {
             <option value="">Select a Catagory</option>
 
             <?php while ($cata = mysqli_fetch_assoc($cata_info)) { ?>
-                <option value="<?php echo $cata['ctg_id'] ?>"><?php echo $cata['ctg_name'] ?></option>
-
+                <option value="<?php echo $cata['ctg_id'] ?>" <?= $cata['ctg_id'] === $pdt['pdt_ctg'] ? 'selected' : null ?>><?php echo $cata['ctg_name'] ?></option>
             <?php } ?>
         </select>
     </div>
